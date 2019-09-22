@@ -1,0 +1,41 @@
+---
+title: "Project 1"
+author: "Brandon, Suresh, Queena"
+date: "September 15, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown 
+## Objective 1: Display the ability to build regression models using the skills and discussions from Unit 1 and 2.   
+.	Provide interpretation of the regression model including hypothesis testing, interpretation of regression coefficients, and confidence intervals.  Practical vs Statistical significance.
+Logistical Considerations.
+.	Depending on the groups data set (number of predictors and complexity in your final model), it may make more sense to produce two models.  One model that may not be the absolute best for prediction, but would be good for interpretation and hypothesis testing.  Another model could achieve the opposite, high predictability but difficult in providing interpretation.  For smaller data sets it may not be required and one model can provide both.  Do what makes sense given your own data set and your own model building process.  
+
+```{r read data}
+## Read in the CSV file
+Airbnb_df <- read.csv(file="C:/Users/chiawa/Desktop/new-york-city-airbnb-open-data/AB_NYC_2019.csv", header=TRUE, sep=",")
+#head(Airbnb_df)
+
+#Remove all the NAs
+Airbnb_RemoveNA <-Airbnb_df[rowSums(is.na(Airbnb_df)) == 0,]
+#head(Airbnb_RemoveNA)
+
+
+## Perform your regression analysis and report the predictive ability of your model using a test set or some other means through CV.  Be sure to provide metrics if you compare multiple models.
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
