@@ -1,0 +1,93 @@
+---
+title: "Project 1"
+author: "Brandon, Suresh, Queena"
+date: "September 15, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown 
+## Objective 1: Display the ability to build regression models using the skills and discussions from Unit 1 and 2.   
+.	Provide interpretation of the regression model including hypothesis testing, interpretation of regression coefficients, and confidence intervals.  Practical vs Statistical significance.
+Logistical Considerations.
+
+.	Depending on the groups data set (number of predictors and complexity in your final model), it may make more sense to produce two models.  One model that may not be the absolute best for prediction, but would be good for interpretation and hypothesis testing.  Another model could achieve the opposite, high predictability but difficult in providing interpretation.  For smaller data sets it may not be required and one model can provide both.  Do what makes sense given your own data set and your own model building process.  
+
+```{r read data}
+library(ggplot2)
+
+## Read in the CSV file
+Airbnb_df <- read.csv(file="C:/Users/chiawa/Desktop/new-york-city-airbnb-open-data/AB_NYC_2019.csv", header=TRUE, sep=",")
+
+Airbnb_df2 <- read.csv(file="C:/Users/chiawa/Desktop/new-york-city-airbnb-open-data/Price_RoomType_NeighbourGroup.csv", header=TRUE, sep=",")
+
+## For df2
+## 1	Private room
+## 2	Entire home/apt
+## 3	Shared room
+
+## 10 Brooklyn
+## 20 Manhattan
+## 30 Bronx
+## 40 Queens
+## 50 Staten Island
+
+head(Airbnb_df2)
+
+## Remove all the NAs
+Airbnb_CleanData <-Airbnb_df[rowSums(is.na(Airbnb_df)) == 0,]
+Airbnb_CleanData2 <-Airbnb_df2[rowSums(is.na(Airbnb_df2)) == 0,]
+
+if (require(car)){
+  scatterplotMatrix(Airbnb_CleanData2,
+                    smooth=FALSE, 
+                    diagonal="histogram")
+}
+
+
+## Number of Reivews vs. Price
+#qplot(Airbnb_CleanData$neighbourhood_group, Airbnb_CleanData$price, data=Airbnb_CleanData)
+
+
+## Neighbourhood vs. Price
+## qplot(Airbnb_CleanData$number_of_reviews, Airbnb_CleanData$price, data=Airbnb_CleanData)
+## cor.test(Airbnb_CleanData$number_of_reviews, Airbnb_CleanData$price)
+
+## Room Type vs Price
+qplot(Airbnb_CleanData2$room_type, Airbnb_CleanData2$price,  data=Airbnb_CleanData2)
+cor.test(Airbnb_CleanData2$room_type, Airbnb_CleanData2$price)
+
+## Price vs Review per Month
+qplot(log(Airbnb_CleanData$reviews_per_month), log(Airbnb_CleanData$price),  data=Airbnb_CleanData)
+cor.test(Airbnb_CleanData$reviews_per_month, Airbnb_CleanData$price)
+
+## reviews_per_month vs Room Type
+qplot(Airbnb_CleanData2$reviews_per_month, Airbnb_CleanData2$room_type,  data=Airbnb_CleanData2)
+cor.test(Airbnb_CleanData2$reviews_per_month, Airbnb_CleanData2$room_type)
+
+## price vs calculated_host_listings_count
+qplot(Airbnb_CleanData$calculated_host_listings_count, Airbnb_CleanData$price,  data=Airbnb_CleanData)
+cor.test(Airbnb_CleanData$calculated_host_listings_count, Airbnb_CleanData$price)
+
+
+##Airbnb_CleanData.lm = lm(price~number_of_reviews, Airbnb_CleanData$price , data=Airbnb_CleanData)
+##summary(Airbnb_CleanData.lm)
+
+## price vs availability_365
+qplot(Airbnb_CleanData$availability_365, Airbnb_CleanData$price,  data=Airbnb_CleanData)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r correlation, echo=FALSE}
+## Residual
+plot(Airbnb_CleanData$price, Airbnb_CleanData.res, ylab = "Residuals", xlab="rental price", main = "The New York AirBnB")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
