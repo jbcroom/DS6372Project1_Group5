@@ -1,6 +1,6 @@
 ---
 title: "Project 1"
-author: "Brandon, Suresh, Queena"
+author: "Brandon, Queena"
 date: "September 15, 2019"
 output: html_document
 ---
@@ -16,70 +16,127 @@ Logistical Considerations.
 
 .	Depending on the groups data set (number of predictors and complexity in your final model), it may make more sense to produce two models.  One model that may not be the absolute best for prediction, but would be good for interpretation and hypothesis testing.  Another model could achieve the opposite, high predictability but difficult in providing interpretation.  For smaller data sets it may not be required and one model can provide both.  Do what makes sense given your own data set and your own model building process.  
 
-```{r read data}
+```{r read and analyse the data}
 library(ggplot2)
 
 ## Read in the CSV file
-Airbnb_df <- read.csv(file="C:/Users/chiawa/Desktop/new-york-city-airbnb-open-data/AB_NYC_2019.csv", header=TRUE, sep=",")
-
-Airbnb_df2 <- read.csv(file="C:/Users/chiawa/Desktop/new-york-city-airbnb-open-data/Price_RoomType_NeighbourGroup.csv", header=TRUE, sep=",")
-
-## For df2
-## 1	Private room
-## 2	Entire home/apt
-## 3	Shared room
-
-## 10 Brooklyn
-## 20 Manhattan
-## 30 Bronx
-## 40 Queens
-## 50 Staten Island
-
-head(Airbnb_df2)
+kc_data_df <- read.csv(file="C:/Users/chiawa/DS6372Project1_Group5/kc_house_data.csv", header=TRUE, sep=",")
 
 ## Remove all the NAs
-Airbnb_CleanData <-Airbnb_df[rowSums(is.na(Airbnb_df)) == 0,]
-Airbnb_CleanData2 <-Airbnb_df2[rowSums(is.na(Airbnb_df2)) == 0,]
+kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
+pairs (~price + bedrooms + bathrooms + sqft_lot + zipcode + view + floors + sqft_living, data = kc_cleanData_df)
 
-if (require(car)){
-  scatterplotMatrix(Airbnb_CleanData2,
-                    smooth=FALSE, 
-                    diagonal="histogram")
-}
+# Try a transformation with every relevant variable logged.
 
+lprice <- log(kc_cleanData_df$price)
+lbedrooms<-log(kc_cleanData_df$bedrooms)
+lbathrooms<-log(kc_cleanData_df$bathrooms)
+lsqft_lot<-log(kc_cleanData_df$sqft_lot)
+lzipcode<-log(kc_cleanData_df$zipcode)
+lview <- log(kc_cleanData_df$view)
+lfloors<-log(kc_cleanData_df$floors)
+lsqft_living<-log(kc_cleanData_df$sqft_living)
 
-## Number of Reivews vs. Price
-#qplot(Airbnb_CleanData$neighbourhood_group, Airbnb_CleanData$price, data=Airbnb_CleanData)
-
-
-## Neighbourhood vs. Price
-## qplot(Airbnb_CleanData$number_of_reviews, Airbnb_CleanData$price, data=Airbnb_CleanData)
-## cor.test(Airbnb_CleanData$number_of_reviews, Airbnb_CleanData$price)
-
-## Room Type vs Price
-qplot(Airbnb_CleanData2$room_type, Airbnb_CleanData2$price,  data=Airbnb_CleanData2)
-cor.test(Airbnb_CleanData2$room_type, Airbnb_CleanData2$price)
-
-## Price vs Review per Month
-qplot(log(Airbnb_CleanData$reviews_per_month), log(Airbnb_CleanData$price),  data=Airbnb_CleanData)
-cor.test(Airbnb_CleanData$reviews_per_month, Airbnb_CleanData$price)
-
-## reviews_per_month vs Room Type
-qplot(Airbnb_CleanData2$reviews_per_month, Airbnb_CleanData2$room_type,  data=Airbnb_CleanData2)
-cor.test(Airbnb_CleanData2$reviews_per_month, Airbnb_CleanData2$room_type)
-
-## price vs calculated_host_listings_count
-qplot(Airbnb_CleanData$calculated_host_listings_count, Airbnb_CleanData$price,  data=Airbnb_CleanData)
-cor.test(Airbnb_CleanData$calculated_host_listings_count, Airbnb_CleanData$price)
+pairs (~lprice + lbedrooms + lbathrooms + lsqft_lot + lzipcode + lview + lfloors + lsqft_living, data = kc_cleanData_df)
 
 
-##Airbnb_CleanData.lm = lm(price~number_of_reviews, Airbnb_CleanData$price , data=Airbnb_CleanData)
-##summary(Airbnb_CleanData.lm)
+sqrt_price <- sqrt(kc_cleanData_df$price)
+sqrt_bedrooms<-sqrt(kc_cleanData_df$bedrooms)
+sqrt_bathrooms<-sqrt(kc_cleanData_df$bathrooms)
+sqrt_sqft_lot<-sqrt(kc_cleanData_df$sqft_lot)
+sqrt_zipcode<-sqrt(kc_cleanData_df$zipcode)
+sqrt_view <- sqrt(kc_cleanData_df$view)
+sqrt_floors<-sqrt(kc_cleanData_df$floors)
+sqrt_sqft_living<-sqrt(kc_cleanData_df$sqft_living)
 
-## price vs availability_365
-qplot(Airbnb_CleanData$availability_365, Airbnb_CleanData$price,  data=Airbnb_CleanData)
+#pairs (~sqrt_price + sqrt_bedrooms + sqrt_bathrooms + sqrt_sqft_lot + sqrt_zipcode + sqrt_view + sqrt_floors + sqrt_sqft_living, data = kc_cleanData_df)
+
+
+
+## Number of Bedroom vs Price
+qplot(kc_cleanData_df$bedrooms, kc_cleanData_df$price,  data=kc_cleanData_df)
+cor.test(kc_cleanData_df$bedrooms, kc_cleanData_df$price)
+
+## Number of Bathrooms vs Price
+qplot(kc_cleanData_df$bathrooms, kc_cleanData_df$price,data=kc_cleanData_df)
+cor.test(kc_cleanData_df$bathrooms, kc_cleanData_df$price)
+
+## sqft_lot of Bedroom vs Price
+qplot(kc_cleanData_df$sqft_lot, kc_cleanData_df$price,  data=kc_cleanData_df)
+cor.test(kc_cleanData_df$sqft_lot, kc_cleanData_df$price)
+
+## zipcode vs price
+qplot(kc_cleanData_df$zipcode,  kc_cleanData_df$price,   data=kc_cleanData_df)
+cor.test(kc_cleanData_df$zipcode, kc_cleanData_df$price)
+
+## view of Bedroom vs Price
+qplot(kc_cleanData_df$view, kc_cleanData_df$price,  data=kc_cleanData_df)
+cor.test(kc_cleanData_df$view, kc_cleanData_df$price)
+
+## floors vs price
+qplot(kc_cleanData_df$floors,  kc_cleanData_df$price,   data=kc_cleanData_df)
+cor.test(kc_cleanData_df$floors, kc_cleanData_df$price)
+
+## sqft_living vs Price
+qplot(kc_cleanData_df$sqft_living, kc_cleanData_df$price,  data=kc_cleanData_df)
+cor.test(kc_cleanData_df$sqft_living, kc_cleanData_df$price)
+
+## sqft_living vs Price
+qplot(kc_cleanData_df$yr_built, kc_cleanData_df$price,  data=kc_cleanData_df)
+cor.test(kc_cleanData_df$yr_built, kc_cleanData_df$price)
+```
+
+```{r model}
+library(ggplot2)
+
+## Read in the CSV file
+kc_data_df <- read.csv(file="C:/Users/chiawa/DS6372Project1_Group5/kc_house_data.csv", header=TRUE, sep=",")
+
+## Remove all the NAs
+kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
+
+
+kc_cleanData_df.lm <- lm(kc_cleanData_df$price ~ kc_cleanData_df$bathrooms + kc_cleanData_df$sqft_living , data = kc_cleanData_df)
+summary(kc_cleanData_df.lm)
+
+model_PI = predict(kc_cleanData_df.lm, interval="predict", newdata=kc_cleanData_df)
+model_PI
 
 ```
+```{r plotting the model fit}
+library(ggplot2)
+
+## Read in the CSV file
+kc_data_df <- read.csv(file="C:/Users/chiawa/DS6372Project1_Group5/kc_house_data.csv", header=TRUE, sep=",")
+
+## Remove all the NAs
+kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
+kc_cleanData_df.lm <- lm(kc_cleanData_df$price ~ kc_cleanData_df$bathrooms + kc_cleanData_df$sqft_living , data = kc_cleanData_df)
+
+##plotting the model fit
+par(mfrow=c(2,2))
+plot(kc_cleanData_df.lm , which=c(1:3))
+
+##Histogram with normal curve
+##Store studentized residuals
+studresbrain <- rstudent(kc_cleanData_df.lm )
+
+##Histogram
+hist(studresbrain, freq=FALSE, main="Distribution of Studentized Residuals",
+xlab="Studentized Residuals", ylab="Density", ylim=c(0,0.5))
+
+##Create range of x-values for normal curve
+xfit2 <- seq(min(studresbrain)-1, max(studresbrain)+1, length=40)
+
+##Generate values from the normal distribution at the specified values
+yfit2 <- (dnorm(xfit2))
+
+##Add the normal curve
+lines(xfit2, yfit2, ylim=c(0,0.5))
+
+
+```
+
 
 ## Including Plots
 
