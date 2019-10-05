@@ -119,13 +119,12 @@ library(ggplot2)
 ## adjusted R^2 - higher is better
 ## MSPE (Mean Square Prediction Error) - lower is better as it measure the distance the prediction are from the acutual value
 
-## Read in the CSV file
-kc_data_df <- read.csv(file="C:/Users/chiawa/DS6372Project1_Group5/kc_house_data.csv", header=TRUE, sep=",")
 
-FitStart = lm(price ~ 1, data=kc_data_df)
+## model 2 with less varialbes
+FitStart = lm(price ~ 1, data=kc_cleanData_df)
 
 # Stepwise - Find the Model with lowest AIC
-step(FitStart,direction="both", scope = formula(kc_data_df))
+step(FitStart,direction="both", scope = formula(kc_cleanData_df))
 
 
 #Step:  AIC=527906.5
@@ -136,7 +135,7 @@ step(FitStart,direction="both", scope = formula(kc_data_df))
 lm(formula = price ~ sqft_living + lat + view + grade + yr_built + 
     waterfront + bedrooms + bathrooms + zipcode + long + condition + 
     sqft_above + sqft_living15 + yr_renovated + sqft_lot15 + 
-    sqft_lot + floors, data = kc_data_df)
+    sqft_lot + floors, data = kc_cleanData_df)
 
 ```
 
