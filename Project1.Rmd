@@ -85,7 +85,7 @@ cor.test(kc_cleanData_df$yr_built, kc_cleanData_df$price)
 model_1 <- lm(kc_cleanData_df$price ~ kc_cleanData_df$bathrooms + kc_cleanData_df$sqft_living , data = kc_cleanData_df)
 summary(model_1)
 
-model_1_PI = predict(kc_cleanData_df.lm, interval="predict", newdata=kc_cleanData_df)
+#model_1_PI = predict(kc_cleanData_df.lm, interval="predict", newdata=kc_cleanData_df)
 #model_1_PI
 
 ```
@@ -103,7 +103,7 @@ hist(model_1_studresbrain, freq=FALSE, main="Distribution of Studentized Residua
 xlab="Studentized Residuals", ylab="Density", ylim=c(0,0.5))
 
 ##Create range of x-values for normal curve
-xfit2 <- seq(min(model_1_studresbrain)-1, max(studresbrain)+1, length=40)
+xfit2 <- seq(min(model_1_studresbrain)-1, max(model_1_studresbrain)+1, length=40)
 
 ##Generate values from the normal distribution at the specified values
 yfit2 <- (dnorm(xfit2))
@@ -113,7 +113,7 @@ lines(xfit2, yfit2, ylim=c(0,0.5))
 
 ```
 ## model 2
-```{r evaluating/validating Models}
+```{r - use backward, forward, and stepwise to find the best model}
 library(ggplot2)
 
 ## adjusted R^2 - higher is better
@@ -122,21 +122,21 @@ library(ggplot2)
 ## Read in the CSV file
 kc_data_df <- read.csv(file="C:/Users/chiawa/DS6372Project1_Group5/kc_house_data.csv", header=TRUE, sep=",")
 
-## Remove all the NAs
-kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
-kc_cleanData_df.lm <- lm(kc_cleanData_df$price ~ kc_cleanData_df$bathrooms + kc_cleanData_df$sqft_living , data = kc_cleanData_df)
+FitStart = lm(price ~ 1, data=kc_data_df)
 
-## 1. Divide the data set wtih responses into a "Training set" and a "Test set"
+# Stepwise - Find the Model with lowest AIC
+step(FitStart,direction="both", scope = formula(kc_data_df))
 
-## 2. Train a model on the Training set.
 
-## 3. Generate prediction using this model for the test set explanatory variables
+#Step:  AIC=527906.5
+#price ~ sqft_living + lat + view + grade + yr_built + waterfront + 
+#    bedrooms + bathrooms + zipcode + long + condition + sqft_above + 
+#    sqft_living15 + yr_renovated + sqft_lot15 + sqft_lot + floors
 
-## 4. Find the MSPE using the predictions and the actual value from the test set.
-
-## 5. Repeat 2-4 for competing models.
-
-## 6. compare MSPEs of Competing models.
+lm(formula = price ~ sqft_living + lat + view + grade + yr_built + 
+    waterfront + bedrooms + bathrooms + zipcode + long + condition + 
+    sqft_above + sqft_living15 + yr_renovated + sqft_lot15 + 
+    sqft_lot + floors, data = kc_data_df)
 
 ```
 
