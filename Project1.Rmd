@@ -132,22 +132,32 @@ step(FitStart,direction="both", scope = formula(kc_cleanData_df))
 #    bedrooms + bathrooms + zipcode + long + condition + sqft_above + 
 #    sqft_living15 + yr_renovated + sqft_lot15 + sqft_lot + floors
 
-lm(formula = price ~ sqft_living + lat + view + grade + yr_built + 
+model_2 =lm(formula = price ~ sqft_living + lat + view + grade + yr_built + 
     waterfront + bedrooms + bathrooms + zipcode + long + condition + 
     sqft_above + sqft_living15 + yr_renovated + sqft_lot15 + 
     sqft_lot + floors, data = kc_cleanData_df)
 
 ```
 
-## Object 2: Anova
+## Object 2: Time Series
 
 You can also embed plots, for example:
 
 ```{r correlation, echo=FALSE}
 # compare models
-#model 1 <- lm(y ~ x1 + x2 + x3 + x4, data=mydata)
-#model 2 <- lm(y ~ x1 + x2)
-#anova(model 1, model 22)
+#anova(model_1, model_2)
+library(tseries)
+library(forecast)
+library(ggplot2)
+
+kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
+pairs (~price + bedrooms + bathrooms + sqft_lot + zipcode + view + floors + sqft_living, data = kc_cleanData_df)
+
+
+attach(kc_cleanData_df)
+
+AR1<-arima(kc_cleanData_df, order=c(1,0,0))
+AR2<-arima(kc_cleanData_df, order=c(2,0,0))
 
 
 ```
