@@ -2,7 +2,9 @@
 title: "DS 6372 - Project 1"
 author: "Brandon Croom, Queena Wang"
 date: "September 15, 2019"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -10,16 +12,39 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown 
-## Objective 1: Display the ability to build regression models using the skills and discussions from Unit 1 and 2.   
-
-```{r read and analyse the data}
+## Initial setup of data and library loading
+```{r load libraries and data}
+library(lubridate)
+library(dplyr)
 library(ggplot2)
+library(dichromat)
+library(leaflet)
+library(GGally)
+library(gridExtra)
+library(DT)
+library(caret)
+library(ISLR)
+library(leaps)
+library(tseries)
+library(forecast)
+library(ggmap)
 
-## Read in the CSV file
 ## Directories listed below for easy copy paste
 #qw_directory = "C:/Users/chiawa/DS6372Project1_Group5/kc_house_data.csv"
 #bc_directory = "C:/Users/croomb/OneDrive - BAT/Desktop/Personal Training/SMU/DS 6372 - Applied Statistics/Projects/DS6372Project1_Group5/"
-kc_data_df <- read.csv(file="C:/Users/croomb/OneDrive - BAT/Desktop/Personal Training/SMU/DS 6372 - Applied Statistics/Projects/DS6372Project1_Group5/kc_house_data.csv", header=TRUE, sep=",")
+
+## Set the working directory
+setwd("C:/Users/croomb/OneDrive - BAT/Desktop/Personal Training/SMU/DS 6372 - Applied Statistics/Projects/DS6372Project1_Group5/")
+
+## Read in the CSV file
+kc_data_df <- read.csv(file="kc_house_data.csv", header=TRUE, sep=",")
+
+```
+
+## Objective 1: Display the ability to build regression models using the skills and discussions from Unit 1 and 2.
+
+## Perform Initial EDA
+```{r perform initial EDA}
 
 ## Check for NA's via summary
 summary(kc_data_df)
@@ -86,18 +111,116 @@ cor.test(kc_cleanData_df$sqft_living, kc_cleanData_df$price)
 ## sqft_living vs Price
 qplot(kc_cleanData_df$yr_built, kc_cleanData_df$price,  data=kc_cleanData_df)
 cor.test(kc_cleanData_df$yr_built, kc_cleanData_df$price)
+
+## get variable correlation. Remove the date and id fields
+ggcorr(kc_cleanData_df %>% select(-date,-id), name = "corr", label = TRUE, hjust = 1, label_size = 2.5, angle = -45, size = 3)
+
+##Remove the ID and date fields for the remainder of the analysis
+kc_cleanData_df = kc_cleanData_df[-c(1,2)]
+
+## Create training and test data sets for model predictions
+## Create training and test data sets
+set.seed(1234)
+trainIndex = createDataPartition(kc_cleanData_df$price,p=.8,list=FALSE,times=1)
+
+trainData = kc_cleanData_df[trainIndex,]
+testdata = kc_cleanData_df[-trainIndex,]
 ```
 
-```{r model 1 }
-## model 1: using multi regression with two categorial variables (bathrooms number and sqft living)
-model_1 <- lm(kc_cleanData_df$price ~ kc_cleanData_df$bathrooms + kc_cleanData_df$sqft_living , data = kc_cleanData_df)
+## Model 0 - Initial Attempt Correlated Data - All Data
+```{r model 0 Initial Correlated Data }
+## model 0: build model based off correlated values in EDA
+model_0 <- lm(kc_cleanData_df$price ~ bathrooms + sqft_living + grade + sqft_above + sqft_living15 , data = kc_cleanData_df)
+
+#Get model summary
+summary(model_0)
+
+#Get model confidence intervals
+confint(model_0)
+
+#Get model AIC and BIC
+AIC(model_0)
+BIC(model_0)
+
+```
+```{r model 0 residual analysis initial}
+##plotting the model fit
+par(mfrow=c(2,2))
+plot(model_0 , which=c(1:3))
+
+##Histogram with normal curve
+##Store studentized residuals
+model_0_studresbrain <- rstudent(model_0)
+
+##Histogram
+hist(model_0_studresbrain, freq=FALSE, main="Distribution of Studentized Residuals(Model 1) ",
+xlab="Studentized Residuals", ylab="Density", ylim=c(0,0.5))
+
+##Create range of x-values for normal curve
+xfit2 <- seq(min(model_0_studresbrain)-1, max(model_0_studresbrain)+1, length=40)
+
+##Generate values from the normal distribution at the specified values
+yfit2 <- (dnorm(xfit2))
+
+##Add the normal curve
+lines(xfit2, yfit2, ylim=c(0,0.5))
+```
+## Model 0 - Initial Attempt Correlated Data - Log Price - All Data
+```{r model 1 Initial Correlated Data }
+## model 0: build model based off correlated values in EDA
+model_0_LT <- lm(log(kc_cleanData_df$price) ~ bathrooms + sqft_living + grade + sqft_above + sqft_living15 , data = kc_cleanData_df)
+
+#Get model summary
+summary(model_0_LT)
+
+#Get model confidence intervals
+confint(model_0_LT)
+
+#Get model AIC and BIC
+AIC(model_0_LT)
+BIC(model_0_LT)
+
+```
+```{r model 0 residual analysis initial log}
+##plotting the model fit
+par(mfrow=c(2,2))
+plot(model_0 , which=c(1:3))
+
+##Histogram with normal curve
+##Store studentized residuals
+model_0_studresbrain <- rstudent(model_0_LT)
+
+##Histogram
+hist(model_0_studresbrain, freq=FALSE, main="Distribution of Studentized Residuals(Model 1) ",
+xlab="Studentized Residuals", ylab="Density", ylim=c(0,0.5))
+
+##Create range of x-values for normal curve
+xfit2 <- seq(min(model_0_studresbrain)-1, max(model_0_studresbrain)+1, length=40)
+
+##Generate values from the normal distribution at the specified values
+yfit2 <- (dnorm(xfit2))
+
+##Add the normal curve
+lines(xfit2, yfit2, ylim=c(0,0.5))
+```
+
+## Model 1 - Initial Attempt - All Data
+```{r model 1 Initial }
+## model 1: build model based off of all from EDA
+model_1 <- lm(kc_cleanData_df$price ~. , data = kc_cleanData_df)
+
+#Get model summary
 summary(model_1)
 
-#model_1_PI = predict(kc_cleanData_df.lm, interval="predict", newdata=kc_cleanData_df)
-#model_1_PI
+#Get model confidence intervals
+confint(model_1)
+
+#Get model AIC and BIC
+AIC(model_1)
+BIC(model_1)
 
 ```
-```{r model 1 residual analysis}
+```{r model 1 residual analysis initial}
 ##plotting the model fit
 par(mfrow=c(2,2))
 plot(model_1 , which=c(1:3))
@@ -118,35 +241,74 @@ yfit2 <- (dnorm(xfit2))
 
 ##Add the normal curve
 lines(xfit2, yfit2, ylim=c(0,0.5))
-
-AIC(model_1)
-BIC(model_1)
 ```
-## model 2
-```{r - use backward, forward, and stepwise to find the best model}
-library(ggplot2)
 
+## Model 1 - Log Transform of Price - All Data
+```{r model 1 LogTransform}
+## model 1: build model based off of all values from EDA
+model_1_LT <- lm(log(kc_cleanData_df$price) ~. , data = kc_cleanData_df)
+
+#Get model summary
+summary(model_1_LT)
+
+#Get model confidence intervals
+confint(model_1_LT)
+
+#Get model AIC and BIC
+AIC(model_1_LT)
+BIC(model_1_LT)
+
+```
+```{r model 1 residual analysis log transform}
+##plotting the model fit
+par(mfrow=c(2,2))
+plot(model_1_LT, which=c(1:3))
+
+##Histogram with normal curve
+##Store studentized residuals
+model_1_studresbrain <- rstudent(model_1_LT)
+
+##Histogram
+hist(model_1_studresbrain, freq=FALSE, main="Distribution of Studentized Residuals(Model 1) ",
+xlab="Studentized Residuals", ylab="Density", ylim=c(0,0.5))
+
+##Create range of x-values for normal curve
+xfit2 <- seq(min(model_1_studresbrain)-1, max(model_1_studresbrain)+1, length=40)
+
+##Generate values from the normal distribution at the specified values
+yfit2 <- (dnorm(xfit2))
+
+##Add the normal curve
+lines(xfit2, yfit2, ylim=c(0,0.5))
+```
+
+## Model 2 - Stepwise Prediction Function (No Log Price) - All Data
+```{r - use backward, forward, and stepwise to find the best model no log price}
 ## adjusted R^2 - higher is better
 ## MSPE (Mean Square Prediction Error) - lower is better as it measure the distance the prediction are from the acutual value
 
 
-## model 2 with less varialbes
+## model 2 with less variables
 FitStart = lm(price ~ 1, data=kc_cleanData_df)
 
 # Stepwise - Find the Model with lowest AIC
 step(FitStart,direction="both", scope = formula(kc_cleanData_df))
 
-
-#Step:  AIC=527906.5
-#price ~ sqft_living + lat + view + grade + yr_built + waterfront + 
-#    bedrooms + bathrooms + zipcode + long + condition + sqft_above + 
-#    sqft_living15 + yr_renovated + sqft_lot15 + sqft_lot + floors
-
+#build the model based on features selected
 model_2 =lm(formula = price ~ sqft_living + lat + view + grade + yr_built + 
     waterfront + bedrooms + bathrooms + zipcode + long + condition + 
     sqft_above + sqft_living15 + yr_renovated + sqft_lot15 + 
     sqft_lot + floors, data = kc_cleanData_df)
 
+#Get model summary
+summary(model_2)
+
+#Get model confidence intervals
+confint(model_2)
+
+#Get model AIC and BIC
+AIC(model_2)
+BIC(model_2)
 ```
 ```{r model 2 residual analysis}
 ##plotting the model fit
@@ -169,23 +331,172 @@ yfit2 <- (dnorm(xfit2))
 
 ##Add the normal curve
 lines(xfit2, yfit2, ylim=c(0,0.5))
-
-AIC(model_2)
-BIC(model_2)
 ```
 
-## Object 2: Time Series
+## Model 2 - Stepwise Prediction Function (Log Price) - All Data
+```{r - use backward, forward, and stepwise to find the best model log price}
+## adjusted R^2 - higher is better
+## MSPE (Mean Square Prediction Error) - lower is better as it measure the distance the prediction are from the acutual value
 
-You can also embed plots, for example:
+
+## model 2 with less variables
+FitStart = lm(log(price) ~ 1, data=kc_cleanData_df)
+
+# Stepwise - Find the Model with lowest AIC
+step(FitStart,direction="both", scope = formula(kc_cleanData_df))
+
+#build the model based on features selected
+model_2_LT = lm(formula = log(price) ~ grade + lat + sqft_living + yr_built + 
+                view + bathrooms + sqft_living15 + condition + waterfront + 
+                floors + zipcode + long + sqft_lot + yr_renovated + bedrooms + 
+                sqft_lot15 + sqft_above, data = kc_cleanData_df)
+
+
+#Get model summary
+summary(model_2_LT)
+
+#Get model confidence intervals
+confint(model_2_LT)
+
+#Get model AIC and BIC
+AIC(model_2_LT)
+BIC(model_2_LT)
+
+```
+```{r model 2 residual analysis all}
+##plotting the model fit
+par(mfrow=c(2,2))
+plot(model_2_LT , which=c(1:3))
+
+##Histogram with normal curve
+##Store studentized residuals
+model_2_studresbrain <- rstudent(model_2_LT)
+
+##Histogram
+hist(model_2_studresbrain, freq=FALSE, main="Distribution of Studentized Residuals(Model 2) ",
+xlab="Studentized Residuals", ylab="Density", ylim=c(0,0.5))
+
+##Create range of x-values for normal curve
+xfit2 <- seq(min(model_2_studresbrain)-1, max(model_2_studresbrain)+1, length=40)
+
+##Generate values from the normal distribution at the specified values
+yfit2 <- (dnorm(xfit2))
+
+##Add the normal curve
+lines(xfit2, yfit2, ylim=c(0,0.5))
+```
+
+Based on running all the analysis on all data for both a linear regression model and a stepwise model, the better fit comes with taking a log transformation of the price when looking at the residual plots. Keeping that in mind let's move forward with testing how well the models predict for price
+## Model 2 - Stepwise Prediction Function (Log Price) - Predictive Data
+```{r - use backward, forward, and stepwise to find the best model predictive}
+## adjusted R^2 - higher is better
+## MSPE (Mean Square Prediction Error) - lower is better as it measure the distance the prediction are from the acutual value
+
+## model 2 with training data
+FitStart = lm(log(price) ~ 1, data=trainData)
+
+# Stepwise - Find the Model with lowest AIC
+step(FitStart,direction="both", scope = formula(trainData))
+
+#Build model based on selected features
+#model_2_PD = lm(formula = log(price) ~ grade + lat + sqft_living + yr_built + 
+#                view + bathrooms + sqft_living15 + condition + waterfront + 
+#                floors + zipcode + long + sqft_lot + yr_renovated + bedrooms + 
+#                sqft_lot15 + sqft_above, data = trainData)
+
+model_2_PD = lm(formula = log(price) ~ grade + lat + sqft_living + yr_built + 
+             view + condition + bathrooms + sqft_living15 + waterfront + 
+            floors + zipcode + long + yr_renovated + sqft_lot + bedrooms + 
+            sqft_lot15 + sqft_basement, data = trainData)
+
+
+
+#Get model summary
+summary(model_2_PD)
+
+#Get model coefficients
+confint(model_2_PD)
+
+#Get model AIC and BIC
+AIC(model_2_PD)
+BIC(model_2_PD)
+
+```
+```{r model 2 residual analysis predictive}
+##plotting the model fit
+par(mfrow=c(2,2))
+plot(model_2 , which=c(1:3))
+
+##Histogram with normal curve
+##Store studentized residuals
+model_2_studresbrain <- rstudent(model_2_PD)
+
+##Histogram
+hist(model_2_studresbrain, freq=FALSE, main="Distribution of Studentized Residuals(Model 2) ",
+xlab="Studentized Residuals", ylab="Density", ylim=c(0,0.5))
+
+##Create range of x-values for normal curve
+xfit2 <- seq(min(model_2_studresbrain)-1, max(model_2_studresbrain)+1, length=40)
+
+##Generate values from the normal distribution at the specified values
+yfit2 <- (dnorm(xfit2))
+
+##Add the normal curve
+lines(xfit2, yfit2, ylim=c(0,0.5))
+
+
+#Test the model prediction based on the training data
+pred1 = predict(object=model_2_PD,newdata=testdata)
+
+res1 = cbind(testdata$price,pred1)
+colnames(res1) <- c("actual", "pred1")
+res1 <- as.data.frame(res1)
+
+plot(actual~pred1, data=res1,ylim=c(0,4000000), 
+     main = "Actual prices vs Predicted prices by Model 2")
+```
+
+```{r model prediction}
+#Look at an exhaustive method for model build with an NVMax of 18 (the maximumum number of variables)
+model_2_Final=regsubsets(log(price)~.,data=trainData,nvmax=18)
+
+#Build ASE plots
+predict.regsubsets =function (object , newdata ,id ,...){
+  form=as.formula (object$call [[2]])
+  mat=model.matrix(form ,newdata )
+  coefi=coef(object ,id=id)
+  xvars=names(coefi)
+  mat[,xvars]%*%coefi
+}
+
+testASE<-c()
+#note my index is to 17 since that what I set it in regsubsets
+for (i in 1:17){
+  predictions<-predict.regsubsets(object=model_2_Final,newdata=testdata,id=i) 
+  testASE[i]<-mean((log(testdata$price)-predictions)^2)
+}
+
+#Determine model least number of variables 
+which.min(testASE)
+
+#Display model coefficients based on testASE
+coef(model_2_Final,which.min(testASE))
+
+#Build ASE graph
+par(mfrow=c(1,1))
+plot(1:17,testASE,type="l",xlab="# of predictors",ylab="test vs train ASE",ylim=c(0,0.2))
+index<-which(testASE==min(testASE))
+points(index,testASE[index],col="red",pch=10)
+rss<-summary(model_2_Final)$rss
+lines(1:17,rss/(nrow(trainData)),lty=3,col="blue")  #Dividing by training data sample side since ASE=RSS/sample size
+```
+
+
+## Object 2: Time Series
 
 ```{r correlation, echo=FALSE}
 # compare models
 #anova(model_1, model_2)
-library(tseries)
-library(forecast)
-library(ggplot2)
-library(dplyr)
-library(ggmap)
 
 kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
 pairs (~price + bedrooms + bathrooms + sqft_lot + zipcode + view + floors + sqft_living, data = kc_cleanData_df)
