@@ -511,8 +511,8 @@ pricesIn100k <- kc_cleanData_df$price/100000
 
 plot(kc_cleanData_df$price ~ kc_cleanData_df$yr_built,
      data=kc_cleanData_df,
-     cex =.3,
-     col ='black',
+     cex =.5,
+     col ='dark red',
      main = 'House Price by Year',
      xlab ='Year',
      ylab ='Price of house in 100k')
