@@ -512,32 +512,64 @@ attach(kc_cleanData_df)
 
 glimpse(kc_cleanData_df)
 
-summary(kc_cleanData_df)
-
 pricesIn100k <- kc_cleanData_df$price/100000
-hist(pricesIn100k,
-     data=kc_cleanData_df$price,
-     main = 'Price Distribution',
-     xlab = 'Price in $100k',
-     ylab = 'Frequency',
-     col = 'red',
-     bins =10
-)
 
-hist(kc_cleanData_df$bedrooms,
-     main = 'Bedrooms Distribuion',
-     xlab ='Number of Bedrooms',
-     ylab = 'Frequency',
-     col='blue'
-     )
 
 plot(kc_cleanData_df$price ~ kc_cleanData_df$yr_built,
      data=kc_cleanData_df,
-     cex =.1,
+     cex =.3,
      col ='black',
      main = 'House Price by Year',
      xlab ='Year',
      ylab ='Price of house in 100k')
+
+
+priceByDecade <- data.frame(Price = kc_cleanData_df$price, Decade = kc_cleanData_df$yr_built)
+
+for (i in 1:9000){
+  if (priceByDecade$Decade[i]<1925){
+    priceByDecade$Decade[i] <- '1900-1920'
+  }
+   else if (priceByDecade$Decade[i]>1920 && priceByDecade$Decade[i]<1940){
+    priceByDecade$Decade[i] <- '1920-1940'
+   }
+   else if (priceByDecade$Decade[i]>1940 && priceByDecade$Decade[i]<1960){
+    priceByDecade$Decade[i] <- '1940-1960'
+  }
+  else if (priceByDecade$Decade[i]>1960 && priceByDecade$Decade[i]<1980){
+    priceByDecade$Decade[i] <- '1960-1980'
+  }
+   else if (priceByDecade$Decade[i]>1980 && priceByDecade$Decade[i]<2000){
+    priceByDecade$Decade[i] <- '1980-2000'
+  }
+    else {
+    priceByDecade$Decade[i] <- '2000-current'
+  }
+  
+}
+  
+priceByDecade$Decade <- as.factor(priceByDecade$Decade)
+
+
+# We are diving years into factors of 20 year spans
+# run Anova
+anova <- aov(priceByDecade$Price ~priceByDecade$Decade, data=priceByDecade)
+
+#summary stats on Anova
+summary(anova)
+
+#run Tukey's test on Anova
+TukeyHSD(anova)
+
+plot(pricesIn100k ~ priceByDecade$Decade,
+     data=priceByDecade,
+     main = 'Anova Price ~ Every 20 year',
+     xlab = 'every 20 years',
+     ylab = 'house price in $100k',
+     col = c ('red', 'blue', 'green', 'yellow', 'pink')
+     
+)
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
