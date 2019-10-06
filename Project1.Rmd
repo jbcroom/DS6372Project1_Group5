@@ -499,14 +499,14 @@ lines(1:17,rss/(nrow(trainData)),lty=3,col="blue")  #Dividing by training data s
 #anova(model_1, model_2)
 
 kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
-pairs (~price + bedrooms + bathrooms + sqft_lot + zipcode + view + floors + sqft_living, data = kc_cleanData_df)
+#pairs (~price + bedrooms + bathrooms + sqft_lot + zipcode + view + floors + sqft_living, data = kc_cleanData_df)
 
 # Drop Date From model
 kc_cleanData_df <- kc_cleanData_df[,c(1,3:21)]
 kc_cleanData_df
 
 #Grab a smaller set of the data
-kc_cleanData_df <- kc_cleanData_df[1:5000,]
+kc_cleanData_df <- kc_cleanData_df[1:9000,]
 
 attach(kc_cleanData_df)
 
@@ -514,9 +514,9 @@ glimpse(kc_cleanData_df)
 
 summary(kc_cleanData_df)
 
-pricesIn100k <- kc_cleanData_df$price /100000
+pricesIn100k <- kc_cleanData_df$price/100000
 hist(pricesIn100k,
-     data=kc_cleanData_df,
+     data=kc_cleanData_df$price,
      main = 'Price Distribution',
      xlab = 'Price in $100k',
      ylab = 'Frequency',
@@ -526,10 +526,18 @@ hist(pricesIn100k,
 
 hist(kc_cleanData_df$bedrooms,
      main = 'Bedrooms Distribuion',
-     xlab ='Number of Bedrroms',
+     xlab ='Number of Bedrooms',
      ylab = 'Frequency',
      col='blue'
      )
+
+plot(kc_cleanData_df$price ~ kc_cleanData_df$yr_built,
+     data=kc_cleanData_df,
+     cex =.1,
+     col ='black',
+     main = 'House Price by Year',
+     xlab ='Year',
+     ylab ='Price of house in 100k')
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
