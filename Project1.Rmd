@@ -495,24 +495,19 @@ lines(1:17,rss/(nrow(trainData)),lty=3,col="blue")  #Dividing by training data s
 ## Object 2: Anova
 
 ```{r correlation, echo=FALSE}
-# compare models
-#anova(model_1, model_2) - compare House vs Price every 20 years
-
+# Compare models
+# anova(model_1, model_2) - compare House Price every 20 years
 kc_cleanData_df <-kc_data_df[rowSums(is.na(kc_data_df)) == 0,]
 
 # Drop Date From model
 kc_cleanData_df <- kc_cleanData_df[,c(1,3:21)]
 kc_cleanData_df
 
-#Grab a smaller set of the data
+# Grab a smaller set of the data
 kc_cleanData_df <- kc_cleanData_df[1:9000,]
-
 attach(kc_cleanData_df)
-
 glimpse(kc_cleanData_df)
-
 pricesIn100k <- kc_cleanData_df$price/100000
-
 
 plot(kc_cleanData_df$price ~ kc_cleanData_df$yr_built,
      data=kc_cleanData_df,
@@ -523,52 +518,48 @@ plot(kc_cleanData_df$price ~ kc_cleanData_df$yr_built,
      ylab ='Price of house in 100k')
 
 
-priceByDecade <- data.frame(Price = kc_cleanData_df$price, Decade = kc_cleanData_df$yr_built)
+# Divide House Price by every 20 years
+housePriceEvery20Yr <- data.frame(Price = kc_cleanData_df$price, GroupBy20yr = kc_cleanData_df$yr_built)
 
 for (i in 1:9000){
-  if (priceByDecade$Decade[i]<1925){
-    priceByDecade$Decade[i] <- '1900-1920'
+  if (housePriceEvery20Yr$GroupBy20yr[i]<1925){
+    housePriceEvery20Yr$GroupBy20yr[i] <- '1900-1920'
   }
-   else if (priceByDecade$Decade[i]>1920 && priceByDecade$Decade[i]<1940){
-    priceByDecade$Decade[i] <- '1920-1940'
-   }
-   else if (priceByDecade$Decade[i]>1940 && priceByDecade$Decade[i]<1960){
-    priceByDecade$Decade[i] <- '1940-1960'
+  else if (housePriceEvery20Yr$GroupBy20yr[i]>1920 && housePriceEvery20Yr$GroupBy20yr[i]<1940){
+    housePriceEvery20Yr$GroupBy20yr[i] <- '1920-1940'
   }
-  else if (priceByDecade$Decade[i]>1960 && priceByDecade$Decade[i]<1980){
-    priceByDecade$Decade[i] <- '1960-1980'
+  else if (housePriceEvery20Yr$GroupBy20yr[i]>1940 && housePriceEvery20Yr$GroupBy20yr[i]<1960){
+    housePriceEvery20Yr$GroupBy20yr[i] <- '1940-1960'
   }
-   else if (priceByDecade$Decade[i]>1980 && priceByDecade$Decade[i]<2000){
-    priceByDecade$Decade[i] <- '1980-2000'
+  else if (housePriceEvery20Yr$GroupBy20yr[i]>1960 && housePriceEvery20Yr$GroupBy20yr[i]<1980){
+   housePriceEvery20Yr$GroupBy20yr[i] <- '1960-1980'
   }
-    else {
-    priceByDecade$Decade[i] <- '2000-current'
+  else if (housePriceEvery20Yr$GroupBy20yr[i]>1980 && housePriceEvery20Yr$GroupBy20yr[i]<2000){
+    housePriceEvery20Yr$GroupBy20yr[i] <- '1980-2000'
   }
-  
+  else {
+    housePriceEvery20Yr$GroupBy20yr[i] <- '2000-current'
+  }
 }
-  
-priceByDecade$Decade <- as.factor(priceByDecade$Decade)
-
+housePriceEvery20Yr$GroupBy20yr <- as.factor(housePriceEvery20Yr$GroupBy20yr)
 
 # We are diving years into factors of 20 year spans
-# run Anova
-anova <- aov(priceByDecade$Price ~priceByDecade$Decade, data=priceByDecade)
+# Run Anova
+anova <- aov(housePriceEvery20Yr$Price ~ housePriceEvery20Yr$GroupBy20yr, data=housePriceEvery20Yr )
 
-#summary stats on Anova
+# Summary stats on Anova
 summary(anova)
 
-#run Tukey's test on Anova
+# Run Tukey's test on Anova
 TukeyHSD(anova)
 
-plot(pricesIn100k ~ priceByDecade$Decade,
-     data=priceByDecade,
-     main = 'Anova Price ~ Every 20 year',
-     xlab = 'every 20 years',
-     ylab = 'house price in $100k',
+plot(pricesIn100k ~ housePriceEvery20Yr$GroupBy20yr,
+     data = housePriceEvery20Yr ,
+     main = 'Anova Price ~ House Price Every 20 year',
+     xlab = 'Years',
+     ylab = 'House price in $100k',
      col = c ('red', 'blue', 'green', 'yellow', 'pink')
-     
 )
-
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
