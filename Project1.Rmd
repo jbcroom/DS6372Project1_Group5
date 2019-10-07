@@ -387,6 +387,7 @@ lines(xfit2, yfit2, ylim=c(0,0.5))
 ```
 
 Based on running all the analysis on all data for both a linear regression model and a stepwise model, the better fit comes with taking a log transformation of the price when looking at the residual plots. Keeping that in mind let's move forward with testing how well the models predict for price
+
 ## Model 2 - Stepwise Prediction Function (Log Price) - Predictive Data
 ```{r - use backward, forward, and stepwise to find the best model predictive}
 ## adjusted R^2 - higher is better
